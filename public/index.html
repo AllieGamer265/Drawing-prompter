@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Drawing Prompter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Drawing Prompter</h1>
+      <p>Responde unas preguntas y te doy 3 ideas para dibujar (buscadas en la web).</p>
+    </header>
+
+    <section class="left">
+      <form id="prefs">
+        <h2>1) Colores (elige hasta 4)</h2>
+        <div class="colors" id="colorChoices">
+          <label><input type="checkbox" value="Rojo"> Rojo</label>
+          <label><input type="checkbox" value="Azul"> Azul</label>
+          <label><input type="checkbox" value="Verde"> Verde</label>
+          <label><input type="checkbox" value="Amarillo"> Amarillo</label>
+          <label><input type="checkbox" value="Morado"> Morado</label>
+          <label><input type="checkbox" value="Naranja"> Naranja</label>
+          <label><input type="checkbox" value="Blanco"> Blanco</label>
+          <label><input type="checkbox" value="Negro"> Negro</label>
+        </div>
+
+        <h2>2) Materiales disponibles</h2>
+        <div class="materials">
+          <label><input type="checkbox" value="Lápiz"> Lápiz</label>
+          <label><input type="checkbox" value="Carboncillo"> Carboncillo</label>
+          <label><input type="checkbox" value="Acuarela"> Acuarela</label>
+          <label><input type="checkbox" value="Rotuladores"> Rotuladores</label>
+          <label><input type="checkbox" value="Óleo"> Óleo</label>
+          <label><input type="checkbox" value="Digital"> Digital</label>
+        </div>
+
+        <h2>3) Tiempo disponible</h2>
+        <select name="time">
+          <option value="15 minutos">15 minutos</option>
+          <option value="30 minutos">30 minutos</option>
+          <option value="1 hora">1 hora</option>
+          <option value="2 horas">2 horas</option>
+          <option value="sin límite">Sin límite</option>
+        </select>
+
+        <h2>4) Dificultad</h2>
+        <select name="difficulty">
+          <option>Principiante</option>
+          <option selected>Intermedio</option>
+          <option>Avanzado</option>
+        </select>
+
+        <h2>5) Estilo preferido</h2>
+        <select name="style">
+          <option>Realista</option>
+          <option>Cartoon</option>
+          <option>Abstracto</option>
+          <option>Ilustración</option>
+          <option selected>Estilizado</option>
+        </select>
+
+        <h2>6) Tema preferido</h2>
+        <select name="subject">
+          <option>Animales</option>
+          <option selected>Personas/Retrato</option>
+          <option>Paisaje</option>
+          <option>Objetos</option>
+          <option>Ciencia ficción / Fantasía</option>
+          <option>Sin preferencia</option>
+        </select>
+
+        <h2>7) Estado de ánimo / detalle adicional (opcional)</h2>
+        <input name="mood" placeholder="Ej: melancólico, colorido, minimalista" />
+
+        <div class="actions">
+          <button id="getIdeas" type="button">Obtener 3 ideas</button>
+        </div>
+      </form>
+
+      <section id="results">
+        <h2>Ideas</h2>
+        <div id="suggestions"></div>
+      </section>
+    </section>
+
+    <section class="right">
+      <div class="canvas-tools">
+        <div>
+          <label>Herramienta: <select id="tool"><option value="brush">Pincel</option><option value="eraser">Borrador</option></select></label>
+          <label>Tamaño: <input id="size" type="range" min="1" max="50" value="4"></label>
+        </div>
+        <div>
+          <label>Color activo: <input id="picker" type="color" value="#000000"></label>
+          <button id="clear">Limpiar</button>
+          <button id="download">Descargar</button>
+        </div>
+      </div>
+      <canvas id="canvas"></canvas>
+    </section>
+
+    <footer>
+      <small>Proyecto local — usa <code>npm install</code> y <code>npm start</code> para ejecutarlo.</small>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
