@@ -3,107 +3,155 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Drawing Prompter</title>
+  <title>Drawing Prompter - Genera Ideas Para Dibujar</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
-    <header>
-      <h1>Drawing Prompter</h1>
-      <p>Responde unas preguntas y te doy 3 ideas para dibujar (buscadas en la web).</p>
-    </header>
-
-    <section class="left">
-      <form id="prefs">
-        <h2>1) Colores (elige hasta 4)</h2>
-        <div class="colors" id="colorChoices">
-          <label><input type="checkbox" value="Rojo"> Rojo</label>
-          <label><input type="checkbox" value="Azul"> Azul</label>
-          <label><input type="checkbox" value="Verde"> Verde</label>
-          <label><input type="checkbox" value="Amarillo"> Amarillo</label>
-          <label><input type="checkbox" value="Morado"> Morado</label>
-          <label><input type="checkbox" value="Naranja"> Naranja</label>
-          <label><input type="checkbox" value="Blanco"> Blanco</label>
-          <label><input type="checkbox" value="Negro"> Negro</label>
-        </div>
-
-        <h2>2) Materiales disponibles</h2>
-        <div class="materials">
-          <label><input type="checkbox" value="Lápiz"> Lápiz</label>
-          <label><input type="checkbox" value="Carboncillo"> Carboncillo</label>
-          <label><input type="checkbox" value="Acuarela"> Acuarela</label>
-          <label><input type="checkbox" value="Rotuladores"> Rotuladores</label>
-          <label><input type="checkbox" value="Óleo"> Óleo</label>
-          <label><input type="checkbox" value="Digital"> Digital</label>
-        </div>
-
-        <h2>3) Tiempo disponible</h2>
-        <select name="time">
-          <option value="15 minutos">15 minutos</option>
-          <option value="30 minutos">30 minutos</option>
-          <option value="1 hora">1 hora</option>
-          <option value="2 horas">2 horas</option>
-          <option value="sin límite">Sin límite</option>
-        </select>
-
-        <h2>4) Dificultad</h2>
-        <select name="difficulty">
-          <option>Principiante</option>
-          <option selected>Intermedio</option>
-          <option>Avanzado</option>
-        </select>
-
-        <h2>5) Estilo preferido</h2>
-        <select name="style">
-          <option>Realista</option>
-          <option>Cartoon</option>
-          <option>Abstracto</option>
-          <option>Ilustración</option>
-          <option selected>Estilizado</option>
-        </select>
-
-        <h2>6) Tema preferido</h2>
-        <select name="subject">
-          <option>Animales</option>
-          <option selected>Personas/Retrato</option>
-          <option>Paisaje</option>
-          <option>Objetos</option>
-          <option>Ciencia ficción / Fantasía</option>
-          <option>Sin preferencia</option>
-        </select>
-
-        <h2>7) Estado de ánimo / detalle adicional (opcional)</h2>
-        <input name="mood" placeholder="Ej: melancólico, colorido, minimalista" />
-
-        <div class="actions">
-          <button id="getIdeas" type="button">Obtener 3 ideas</button>
-        </div>
-      </form>
-
-      <section id="results">
-        <h2>Ideas</h2>
-        <div id="suggestions"></div>
-      </section>
-    </section>
-
-    <section class="right">
-      <div class="canvas-tools">
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">🎨</div>
         <div>
-          <label>Herramienta: <select id="tool"><option value="brush">Pincel</option><option value="eraser">Borrador</option></select></label>
-          <label>Tamaño: <input id="size" type="range" min="1" max="50" value="4"></label>
-        </div>
-        <div>
-          <label>Color activo: <input id="picker" type="color" value="#000000"></label>
-          <button id="clear">Limpiar</button>
-          <button id="download">Descargar</button>
+          <h1>Drawing Prompter</h1>
+          <p>Obtén ideas de dibujo personalizadas basadas en tus preferencias</p>
         </div>
       </div>
-      <canvas id="canvas"></canvas>
-    </section>
+    </header>
 
-    <footer>
-      <small>Proyecto local — usa <code>npm install</code> y <code>npm start</code> para ejecutarlo.</small>
-    </footer>
+    <div class="main-content">
+      <section class="left-panel">
+        <form id="prefs" class="form-preferences">
+          <div class="form-group">
+            <h2 class="form-title">🎯 Tus Preferencias</h2>
+            
+            <div class="form-section">
+              <label class="section-title">Colores (elige hasta 4)</label>
+              <div class="colors" id="colorChoices">
+                <label class="color-option" style="--c:#d9534f"><input type="checkbox" value="Rojo"><span class="color-dot" aria-hidden="true"></span>Rojo</label>
+                <label class="color-option" style="--c:#1e90ff"><input type="checkbox" value="Azul"><span class="color-dot" aria-hidden="true"></span>Azul</label>
+                <label class="color-option" style="--c:#2ecc71"><input type="checkbox" value="Verde"><span class="color-dot" aria-hidden="true"></span>Verde</label>
+                <label class="color-option" style="--c:#f1c40f"><input type="checkbox" value="Amarillo"><span class="color-dot" aria-hidden="true"></span>Amarillo</label>
+                <label class="color-option" style="--c:#8e44ad"><input type="checkbox" value="Morado"><span class="color-dot" aria-hidden="true"></span>Morado</label>
+                <label class="color-option" style="--c:#e67e22"><input type="checkbox" value="Naranja"><span class="color-dot" aria-hidden="true"></span>Naranja</label>
+                <label class="color-option" style="--c:#ffffff"><input type="checkbox" value="Blanco"><span class="color-dot" aria-hidden="true"></span>Blanco</label>
+                <label class="color-option" style="--c:#000000"><input type="checkbox" value="Negro"><span class="color-dot" aria-hidden="true"></span>Negro</label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <label class="section-title">Materiales disponibles</label>
+              <div class="materials">
+                <label class="material-option"><input type="checkbox" value="Lápiz"> Lápiz</label>
+                <label class="material-option"><input type="checkbox" value="Carboncillo"> Carboncillo</label>
+                <label class="material-option"><input type="checkbox" value="Acuarela"> Acuarela</label>
+                <label class="material-option"><input type="checkbox" value="Rotuladores"> Rotuladores</label>
+                <label class="material-option"><input type="checkbox" value="Óleo"> Óleo</label>
+                <label class="material-option"><input type="checkbox" value="Digital"> Digital</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="time" class="section-title">⏱️ Tiempo</label>
+                <select id="time" name="time">
+                  <option value="15 minutos">15 minutos</option>
+                  <option value="30 minutos">30 minutos</option>
+                  <option value="1 hora">1 hora</option>
+                  <option value="2 horas">2 horas</option>
+                  <option value="sin límite">Sin límite</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="difficulty" class="section-title">📊 Dificultad</label>
+                <select id="difficulty" name="difficulty">
+                  <option>Principiante</option>
+                  <option selected>Intermedio</option>
+                  <option>Avanzado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="style" class="section-title">🎭 Estilo</label>
+                <select id="style" name="style">
+                  <option>Realista</option>
+                  <option>Cartoon</option>
+                  <option>Abstracto</option>
+                  <option>Ilustración</option>
+                  <option selected>Estilizado</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="subject" class="section-title">🌍 Tema</label>
+                <select id="subject" name="subject">
+                  <option>Animales</option>
+                  <option selected>Personas/Retrato</option>
+                  <option>Paisaje</option>
+                  <option>Objetos</option>
+                  <option>Ciencia ficción / Fantasía</option>
+                  <option>Sin preferencia</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <label for="mood" class="section-title">💭 Mood (opcional)</label>
+              <input id="mood" name="mood" type="text" placeholder="Ej: melancólico, colorido, minimalista" />
+            </div>
+
+            <div class="actions">
+              <button id="getIdeas" type="button" class="btn btn-primary">✨ Obtener 3 ideas</button>
+            </div>
+          </div>
+        </form>
+
+        <section id="results" class="results-section">
+          <h2 class="results-title">💡 Ideas Generadas</h2>
+          <div id="suggestions" class="suggestions-container"></div>
+        </section>
+      </section>
+
+      <section class="right-panel">
+        <div class="canvas-wrapper">
+          <div class="canvas-header">
+            <h2>🖌️ Tu Lienzo</h2>
+            <button id="sizeDisplay" class="size-display">Tamaño: 4px</button>
+          </div>
+          
+          <div class="canvas-tools">
+            <div class="tool-group">
+              <label for="tool" class="tool-label">Herramienta</label>
+              <select id="tool">
+                <option value="brush">🖌️ Pincel</option>
+                <option value="eraser">🗑️ Borrador</option>
+              </select>
+            </div>
+
+            <div class="tool-group">
+              <label for="size" class="tool-label">Tamaño: <span id="sizeValue">4</span>px</label>
+              <input id="size" type="range" min="1" max="50" value="4" class="size-slider">
+            </div>
+
+            <div class="tool-group">
+              <label for="picker" class="tool-label">Color</label>
+              <div class="color-picker-wrapper">
+                <input id="picker" type="color" value="#000000" class="color-picker">
+              </div>
+            </div>
+          </div>
+
+          <canvas id="canvas"></canvas>
+
+          <div class="canvas-actions">
+            <button id="clear" class="btn btn-secondary">🧹 Limpiar</button>
+            <button id="download" class="btn btn-success">⬇️ Descargar PNG</button>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
   <script src="app.js"></script>
