@@ -10,6 +10,8 @@ const sizeValue = document.getElementById('sizeValue');
 const toolEl = document.getElementById('tool');
 const clearBtn = document.getElementById('clear');
 const downloadBtn = document.getElementById('download');
+const brushSizeSlider = sizeEl;
+const colorPicker = picker;
 
 console.log('✅ App.js cargado correctamente');
 console.log('Elementos del DOM:', { form, getIdeasBtn, suggestionsDiv, canvas });
@@ -160,6 +162,24 @@ function resizeCanvas() {
   ctx.lineJoin = 'round';
 }
 
+// ============== Canvas Sizing Configuration ==============
+const CANVAS_PRESETS = {
+  small: { width: 400, height: 300, label: 'Pequeño' },
+  medium: { width: 600, height: 500, label: 'Mediano' },
+  large: { width: 800, height: 600, label: 'Grande' },
+  xlarge: { width: 1000, height: 750, label: 'Extra Grande' }
+};
+
+const ORIGINAL_CANVAS_SIZE = {
+  width: 600,
+  height: 500
+};
+
+let canvasAspectRatio = ORIGINAL_CANVAS_SIZE.width / ORIGINAL_CANVAS_SIZE.height;
+let isAspectRatioLocked = false;
+let isPreviewMode = false;
+let previousCanvasImageData = null;
+
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
@@ -224,6 +244,335 @@ downloadBtn.addEventListener('click', () => {
   link.click();
 });
 
+// ============== Canvas Sizing Functions ==============
+
+function initCanvasSizingElements() {
+  // Elements
+  window.canvasSizingPanel = document.getElementById('canvas-sizing-panel');
+  window.canvasWidthInput = document.getElementById('canvas-width-input');
+  window.canvasHeightInput = document.getElementById('canvas-height-input');
+  window.lockAspectRatioBtn = document.getElementById('lock-aspect-ratio-btn');
+  window.contentHandlingSelect = document.getElementById('content-handling-select');
+  window.applyCanvasSizeBtn = document.getElementById('apply-canvas-size-btn');
+  window.previewCanvasSizeBtn = document.getElementById('preview-canvas-size-btn');
+  window.resetCanvasSizeBtn = document.getElementById('reset-canvas-size-btn');
+  window.currentSizeDisplay = document.getElementById('current-size-display');
+  
+  // Preset buttons
+  window.presetButtons = document.querySelectorAll('.preset-btn');
+}
+
+function setupCanvasSizingListeners() {
+  // Preset buttons
+  window.presetButtons.forEach(btn => {
+    btn.addEventListener('click', handlePresetSelect);
+  });
+  
+  // Width input - trigger aspect ratio lock
+  window.canvasWidthInput.addEventListener('input', handleWidthChange);
+  window.canvasHeightInput.addEventListener('input', handleHeightChange);
+  
+  // Aspect ratio lock button
+  window.lockAspectRatioBtn.addEventListener('click', toggleAspectRatioLock);
+  
+  // Action buttons
+  window.applyCanvasSizeBtn.addEventListener('click', applyCanvasSize);
+  window.previewCanvasSizeBtn.addEventListener('click', toggleCanvasSizePreview);
+  window.resetCanvasSizeBtn.addEventListener('click', resetCanvasToOriginal);
+  
+  console.log('✅ Canvas sizing listeners initialized');
+}
+
+function handlePresetSelect(event) {
+  const presetName = event.currentTarget.dataset.preset;
+  const preset = CANVAS_PRESETS[presetName];
+  
+  if (!preset) return;
+  
+  // Update inputs
+  window.canvasWidthInput.value = preset.width;
+  window.canvasHeightInput.value = preset.height;
+  canvasAspectRatio = preset.width / preset.height;
+  
+  // Update active state
+  window.presetButtons.forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.currentTarget.classList.add('active');
+  
+  // Update size display
+  updateSizeDisplay(preset.width, preset.height);
+  
+  console.log(`📐 Preset selected: ${presetName} (${preset.width}x${preset.height})`);
+}
+
+function handleWidthChange(event) {
+  const newWidth = parseInt(event.target.value) || 0;
+  
+  if (isAspectRatioLocked && newWidth > 0) {
+    const newHeight = Math.round(newWidth / canvasAspectRatio);
+    window.canvasHeightInput.value = newHeight;
+    updateSizeDisplay(newWidth, newHeight);
+  } else {
+    updateSizeDisplay(newWidth, parseInt(window.canvasHeightInput.value) || 0);
+  }
+  
+  // Remove active preset since custom values were entered
+  window.presetButtons.forEach(btn => {
+    btn.classList.remove('active');
+  });
+}
+
+function handleHeightChange(event) {
+  const newHeight = parseInt(event.target.value) || 0;
+  
+  if (isAspectRatioLocked && newHeight > 0) {
+    const newWidth = Math.round(newHeight * canvasAspectRatio);
+    window.canvasWidthInput.value = newWidth;
+    updateSizeDisplay(newWidth, newHeight);
+  } else {
+    updateSizeDisplay(parseInt(window.canvasWidthInput.value) || 0, newHeight);
+  }
+  
+  // Remove active preset
+  window.presetButtons.forEach(btn => {
+    btn.classList.remove('active');
+  });
+}
+
+function toggleAspectRatioLock() {
+  isAspectRatioLocked = !isAspectRatioLocked;
+  
+  // Update button appearance
+  window.lockAspectRatioBtn.classList.toggle('locked', isAspectRatioLocked);
+  window.lockAspectRatioBtn.textContent = isAspectRatioLocked 
+    ? '🔒 Proporción bloqueada' 
+    : '🔓 Proporción libre';
+  
+  // Store current aspect ratio when locking
+  if (isAspectRatioLocked) {
+    const width = parseInt(window.canvasWidthInput.value);
+    const height = parseInt(window.canvasHeightInput.value);
+    canvasAspectRatio = width / height;
+  }
+  
+  console.log(`🔒 Aspect ratio lock: ${isAspectRatioLocked ? 'ON' : 'OFF'}`);
+}
+
+function updateSizeDisplay(width, height) {
+  window.currentSizeDisplay.textContent = `${width} × ${height}`;
+}
+
+function saveCanvasContent() {
+  try {
+    previousCanvasImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    console.log('✅ Canvas content saved for resize operation');
+  } catch (error) {
+    console.error('❌ Error saving canvas content:', error);
+    previousCanvasImageData = null;
+  }
+}
+
+function restoreCanvasContent(method = 'keep') {
+  if (!previousCanvasImageData) {
+    console.warn('⚠️ No saved canvas content to restore');
+    return;
+  }
+  
+  switch (method) {
+    case 'keep':
+      // Copy the old image data to the new canvas at the top-left corner
+      ctx.putImageData(previousCanvasImageData, 0, 0);
+      console.log('✅ Canvas content kept (placed at top-left)');
+      break;
+      
+    case 'scale':
+      // Scale the old image to fit the new canvas size
+      const scaledImage = new OffscreenCanvas(
+        previousCanvasImageData.width,
+        previousCanvasImageData.height
+      );
+      const scaledCtx = scaledImage.getContext('2d');
+      scaledCtx.putImageData(previousCanvasImageData, 0, 0);
+      
+      ctx.drawImage(
+        scaledImage,
+        0,
+        0,
+        previousCanvasImageData.width,
+        previousCanvasImageData.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      console.log('✅ Canvas content scaled to new size');
+      break;
+      
+    case 'clear':
+      // Clear the canvas (do nothing, it's already cleared)
+      console.log('✅ Canvas cleared');
+      break;
+  }
+}
+
+function applyCanvasSize() {
+  const newWidth = parseInt(window.canvasWidthInput.value);
+  const newHeight = parseInt(window.canvasHeightInput.value);
+  
+  // Validations
+  if (!newWidth || !newHeight) {
+    alert('⚠️ Por favor ingresa valores válidos de ancho y alto');
+    return;
+  }
+  
+  if (newWidth < 200 || newWidth > 1600) {
+    alert('⚠️ El ancho debe estar entre 200 y 1600 píxeles');
+    return;
+  }
+  
+  if (newHeight < 150 || newHeight > 1200) {
+    alert('⚠️ El alto debe estar entre 150 y 1200 píxeles');
+    return;
+  }
+  
+  // Save current content
+  saveCanvasContent();
+  
+  // Get content handling method
+  const method = window.contentHandlingSelect.value;
+  
+  // Change canvas size
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+  
+  // Reset canvas context properties (they're lost when resizing)
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = colorPicker.value;
+  ctx.lineWidth = brushSizeSlider.value;
+  
+  // Restore content based on selected method
+  restoreCanvasContent(method);
+  
+  // Update preview mode if active
+  if (isPreviewMode) {
+    isPreviewMode = false;
+    window.previewCanvasSizeBtn.classList.remove('active');
+  }
+  
+  // Clear saved data
+  previousCanvasImageData = null;
+  
+  console.log(
+    `✅ Canvas resized to ${newWidth}x${newHeight}px (method: ${method})`
+  );
+}
+
+function toggleCanvasSizePreview() {
+  const newWidth = parseInt(window.canvasWidthInput.value);
+  const newHeight = parseInt(window.canvasHeightInput.value);
+  
+  if (!newWidth || !newHeight) {
+    alert('⚠️ Por favor ingresa valores válidos');
+    return;
+  }
+  
+  if (!isPreviewMode) {
+    // Enter preview mode
+    isPreviewMode = true;
+    saveCanvasContent();
+    
+    // Temporarily resize canvas
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    
+    // Reset context
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = colorPicker.value;
+    ctx.lineWidth = brushSizeSlider.value;
+    
+    // Restore content
+    restoreCanvasContent('keep');
+    
+    window.previewCanvasSizeBtn.classList.add('active');
+    window.previewCanvasSizeBtn.textContent = '✓ Presualizando';
+    
+    console.log('👁️ Canvas preview mode ON');
+  } else {
+    // Exit preview mode - restore original canvas
+    isPreviewMode = false;
+    canvas.width = ORIGINAL_CANVAS_SIZE.width;
+    canvas.height = ORIGINAL_CANVAS_SIZE.height;
+    
+    // Reset context
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = colorPicker.value;
+    ctx.lineWidth = brushSizeSlider.value;
+    
+    // Restore previous content
+    restoreCanvasContent('keep');
+    
+    previousCanvasImageData = null;
+    
+    window.previewCanvasSizeBtn.classList.remove('active');
+    window.previewCanvasSizeBtn.textContent = '👁️ Vista Previa';
+    
+    console.log('👁️ Canvas preview mode OFF');
+  }
+}
+
+function resetCanvasToOriginal() {
+  const confirmed = confirm(
+    '¿Estás seguro de que deseas restaurar el tamaño original del canvas? ' +
+    'El contenido actual se perderá.'
+  );
+  
+  if (!confirmed) return;
+  
+  // Reset to original size
+  canvas.width = ORIGINAL_CANVAS_SIZE.width;
+  canvas.height = ORIGINAL_CANVAS_SIZE.height;
+  
+  // Reset inputs
+  window.canvasWidthInput.value = ORIGINAL_CANVAS_SIZE.width;
+  window.canvasHeightInput.value = ORIGINAL_CANVAS_SIZE.height;
+  
+  // Reset buttons
+  window.presetButtons.forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Reset aspect ratio
+  canvasAspectRatio = ORIGINAL_CANVAS_SIZE.width / ORIGINAL_CANVAS_SIZE.height;
+  isAspectRatioLocked = false;
+  window.lockAspectRatioBtn.classList.remove('locked');
+  window.lockAspectRatioBtn.textContent = '🔓 Proporción libre';
+  
+  // Reset context
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = colorPicker.value;
+  ctx.lineWidth = brushSizeSlider.value;
+  
+  // Clear saved content
+  previousCanvasImageData = null;
+  
+  // Update display
+  updateSizeDisplay(ORIGINAL_CANVAS_SIZE.width, ORIGINAL_CANVAS_SIZE.height);
+  
+  // Close preview if active
+  if (isPreviewMode) {
+    isPreviewMode = false;
+    window.previewCanvasSizeBtn.classList.remove('active');
+    window.previewCanvasSizeBtn.textContent = '👁️ Vista Previa';
+  }
+  
+  console.log('🔄 Canvas reset to original size');
+}
+
 // ============== Color Preferences ==============
 document.querySelectorAll('#colorChoices input').forEach(inp => {
   inp.addEventListener('change', () => {
@@ -260,4 +609,14 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);;
+document.head.appendChild(style);
+
+// ============== Initialize Canvas Sizing on Load ==============
+window.addEventListener('load', function() {
+  // Canvas Sizing Feature
+  initCanvasSizingElements();
+  setupCanvasSizingListeners();
+  updateSizeDisplay(canvas.width, canvas.height);
+  
+  console.log('✅ All features initialized successfully');
+});

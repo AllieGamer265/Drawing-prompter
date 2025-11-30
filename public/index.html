@@ -121,6 +121,91 @@
             <button id="sizeDisplay" class="size-display">Tamaño: 4px</button>
           </div>
           
+          <!-- Canvas Sizing Control Panel -->
+          <div id="canvas-sizing-panel" class="canvas-control-panel">
+            
+            <!-- Título -->
+            <h3 class="canvas-control-title">📐 Tamaño del Canvas</h3>
+            
+            <!-- Opciones Predefinidas -->
+            <div class="canvas-presets">
+              <button class="preset-btn" data-preset="small" title="Pequeño (400x300)" type="button">
+                <span class="preset-icon">📱</span>
+                <span>Pequeño</span>
+              </button>
+              <button class="preset-btn" data-preset="medium" title="Mediano (600x500)" type="button">
+                <span class="preset-icon">🖥️</span>
+                <span>Mediano</span>
+              </button>
+              <button class="preset-btn" data-preset="large" title="Grande (800x600)" type="button">
+                <span class="preset-icon">🖨️</span>
+                <span>Grande</span>
+              </button>
+              <button class="preset-btn" data-preset="xlarge" title="Extra Grande (1000x750)" type="button">
+                <span class="preset-icon">📺</span>
+                <span>Extra Gde</span>
+              </button>
+            </div>
+            
+            <!-- Entrada Personalizada -->
+            <div class="canvas-custom-size">
+              <label for="canvas-width-input">Ancho (px):</label>
+              <input 
+                type="number" 
+                id="canvas-width-input" 
+                class="size-input" 
+                min="200" 
+                max="1600" 
+                value="600"
+                placeholder="Ancho en píxeles"
+              >
+              
+              <label for="canvas-height-input">Alto (px):</label>
+              <input 
+                type="number" 
+                id="canvas-height-input" 
+                class="size-input" 
+                min="150" 
+                max="1200" 
+                value="500"
+                placeholder="Alto en píxeles"
+              >
+              
+              <!-- Botón para mantener proporción -->
+              <button id="lock-aspect-ratio-btn" class="lock-btn" title="Bloquear proporción" type="button">
+                🔓 Proporción libre
+              </button>
+            </div>
+            
+            <!-- Opciones de Contenido -->
+            <div class="canvas-content-options">
+              <label for="content-handling-select">¿Qué hacer con el contenido actual?</label>
+              <select id="content-handling-select" class="content-select">
+                <option value="keep">Mantener (conservar dibujo)</option>
+                <option value="scale">Escalar (ajustar dibujo al nuevo tamaño)</option>
+                <option value="clear">Limpiar (descartar dibujo actual)</option>
+              </select>
+            </div>
+            
+            <!-- Botones de Acción -->
+            <div class="canvas-action-buttons">
+              <button id="apply-canvas-size-btn" class="apply-btn primary-btn" type="button">
+                ✅ Aplicar Cambios
+              </button>
+              <button id="preview-canvas-size-btn" class="preview-btn secondary-btn" type="button">
+                👁️ Vista Previa
+              </button>
+              <button id="reset-canvas-size-btn" class="reset-btn tertiary-btn" type="button">
+                🔄 Restaurar
+              </button>
+            </div>
+            
+            <!-- Estado/Información -->
+            <div id="canvas-size-info" class="size-info">
+              <small>Tamaño actual: <strong id="current-size-display">600 × 500</strong> px</small>
+            </div>
+          </div>
+
           <div class="canvas-tools">
             <div class="tool-group">
               <label for="tool" class="tool-label">Herramienta</label>
