@@ -141,6 +141,41 @@ Genera 3 prompts personalizados basados en las preferencias del usuario.
 
 ---
 
+## 🌍 Desplegar en Vercel (Recomendado)
+
+La forma más simple de publicar esta aplicación en línea es usando **Vercel** (es gratis):
+
+### Opción 1: Usando Vercel CLI
+
+```powershell
+# 1. Instalar Vercel CLI globalmente
+npm install -g vercel
+
+# 2. Desplegar (en la carpeta del proyecto)
+vercel
+```
+
+Vercel te guiará a través de la configuración. El proyecto se configurará automáticamente con el archivo `vercel.json`.
+
+### Opción 2: Conectar repositorio GitHub
+
+1. Push a GitHub (ya hecho ✅)
+2. Ve a https://vercel.com
+3. Haz login con tu cuenta de GitHub
+4. Haz clic en "New Project"
+5. Selecciona tu repositorio `Drawing-prompter`
+6. Vercel detectará automáticamente que es un proyecto Node.js
+7. Haz clic en "Deploy"
+
+**¡Listo!** Tu aplicación estará disponible en una URL de Vercel como:
+```
+https://drawing-prompter-xxxxx.vercel.app
+```
+
+Puedes personalizar el nombre en los settings de Vercel.
+
+---
+
 ## 💡 Posibles Mejoras Futuras
 
 -   **Persistencia de Dibujos**: Usar LocalStorage o un backend para guardar los dibujos.
