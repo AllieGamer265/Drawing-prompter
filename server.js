@@ -11,6 +11,11 @@ app.use(express.json());
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
 
+// Ruta para la página principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
+
 // Base de datos de ideas locales como respaldo
 const DRAWING_IDEAS = {
   animals: [
