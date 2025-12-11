@@ -84,6 +84,9 @@ function showSuggestions(list) {
     el.innerHTML = `
       <strong>💡 Idea ${i + 1}</strong>
       <div style="margin-top: 12px; line-height: 1.6;">${description}</div>
+      <button class="draw-idea-btn" data-idea-index="${i}" style="margin-top: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;">
+        🎨 Empezar a Dibujar
+      </button>
     `;
     el.style.animation = `slideIn 0.3s ease ${i * 0.1}s forwards`;
     el.style.opacity = '0';
@@ -442,9 +445,11 @@ function applyCanvasSize() {
   // Get content handling method
   const method = window.contentHandlingSelect.value;
   
-  // Change canvas size
+  // Change canvas size (both attribute and style)
   canvas.width = newWidth;
   canvas.height = newHeight;
+  canvas.style.width = newWidth + 'px';
+  canvas.style.height = newHeight + 'px';
   
   // Reset canvas context properties (they're lost when resizing)
   ctx.lineCap = 'round';
@@ -454,6 +459,9 @@ function applyCanvasSize() {
   
   // Restore content based on selected method
   restoreCanvasContent(method);
+  
+  // Update size display
+  updateSizeDisplay(newWidth, newHeight);
   
   // Update preview mode if active
   if (isPreviewMode) {
@@ -486,6 +494,8 @@ function toggleCanvasSizePreview() {
     // Temporarily resize canvas
     canvas.width = newWidth;
     canvas.height = newHeight;
+    canvas.style.width = newWidth + 'px';
+    canvas.style.height = newHeight + 'px';
     
     // Reset context
     ctx.lineCap = 'round';
@@ -505,6 +515,8 @@ function toggleCanvasSizePreview() {
     isPreviewMode = false;
     canvas.width = ORIGINAL_CANVAS_SIZE.width;
     canvas.height = ORIGINAL_CANVAS_SIZE.height;
+    canvas.style.width = ORIGINAL_CANVAS_SIZE.width + 'px';
+    canvas.style.height = ORIGINAL_CANVAS_SIZE.height + 'px';
     
     // Reset context
     ctx.lineCap = 'round';
@@ -618,5 +630,44 @@ window.addEventListener('load', function() {
   setupCanvasSizingListeners();
   updateSizeDisplay(canvas.width, canvas.height);
   
+  // Drawing Mode Feature
+  initDrawingMode();
+  
   console.log('✅ All features initialized successfully');
 });
+
+// ============== Drawing Mode ==============
+function initDrawingMode() {
+  // Listen for draw idea buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('draw-idea-btn')) {
+      const ideaIndex = e.target.dataset.ideaIndex;
+      enterDrawingMode();
+      console.log(`🎨 Entering drawing mode for idea ${ideaIndex}`);
+    }
+  });
+  
+  // Setup back button
+  const backBtn = document.getElementById('back-to-ideas-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', exitDrawingMode);
+  }
+}
+
+function enterDrawingMode() {
+  document.body.classList.add('drawing-mode', 'active');
+  const backBtn = document.getElementById('back-to-ideas-btn');
+  if (backBtn) {
+    backBtn.style.display = 'block';
+  }
+  console.log('📱 Drawing mode activated');
+}
+
+function exitDrawingMode() {
+  document.body.classList.remove('drawing-mode', 'active');
+  const backBtn = document.getElementById('back-to-ideas-btn');
+  if (backBtn) {
+    backBtn.style.display = 'none';
+  }
+  console.log('📋 Drawing mode deactivated');
+}

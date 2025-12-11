@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Drawing Prompter - Genera Ideas Para Dibujar</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <main class="container">
     <header class="header">
@@ -15,26 +17,39 @@
           <h1>Drawing Prompter</h1>
           <p>Obtén ideas de dibujo personalizadas basadas en tus preferencias</p>
         </div>
+        <button id="themeBtn" class="btn" style="background-color: var(--primary-dark); margin-right: 10px;">🎨
+          Temas</button>
+        <button id="galleryBtn" class="btn" style="background-color: var(--success); margin-right: 10px;">🖼️ Mis
+          Dibujos</button>
+        <button id="drawingModeBtn" class="btn">Modo Dibujo</button>
       </div>
     </header>
 
-    <div class="main-content">
-      <section class="left-panel">
+    <div class="main-content" id="main-content">
+      <section class="left-panel" id="left-panel">
         <form id="prefs" class="form-preferences">
           <div class="form-group">
             <h2 class="form-title">🎯 Tus Preferencias</h2>
-            
+
             <div class="form-section">
               <label class="section-title">Colores (elige hasta 4)</label>
               <div class="colors" id="colorChoices">
-                <label class="color-option" style="--c:#d9534f"><input type="checkbox" value="Rojo"><span class="color-dot" aria-hidden="true"></span>Rojo</label>
-                <label class="color-option" style="--c:#1e90ff"><input type="checkbox" value="Azul"><span class="color-dot" aria-hidden="true"></span>Azul</label>
-                <label class="color-option" style="--c:#2ecc71"><input type="checkbox" value="Verde"><span class="color-dot" aria-hidden="true"></span>Verde</label>
-                <label class="color-option" style="--c:#f1c40f"><input type="checkbox" value="Amarillo"><span class="color-dot" aria-hidden="true"></span>Amarillo</label>
-                <label class="color-option" style="--c:#8e44ad"><input type="checkbox" value="Morado"><span class="color-dot" aria-hidden="true"></span>Morado</label>
-                <label class="color-option" style="--c:#e67e22"><input type="checkbox" value="Naranja"><span class="color-dot" aria-hidden="true"></span>Naranja</label>
-                <label class="color-option" style="--c:#ffffff"><input type="checkbox" value="Blanco"><span class="color-dot" aria-hidden="true"></span>Blanco</label>
-                <label class="color-option" style="--c:#000000"><input type="checkbox" value="Negro"><span class="color-dot" aria-hidden="true"></span>Negro</label>
+                <label class="color-option" style="--c:#d9534f"><input type="checkbox" value="Rojo"><span
+                    class="color-dot" aria-hidden="true"></span>Rojo</label>
+                <label class="color-option" style="--c:#1e90ff"><input type="checkbox" value="Azul"><span
+                    class="color-dot" aria-hidden="true"></span>Azul</label>
+                <label class="color-option" style="--c:#2ecc71"><input type="checkbox" value="Verde"><span
+                    class="color-dot" aria-hidden="true"></span>Verde</label>
+                <label class="color-option" style="--c:#f1c40f"><input type="checkbox" value="Amarillo"><span
+                    class="color-dot" aria-hidden="true"></span>Amarillo</label>
+                <label class="color-option" style="--c:#8e44ad"><input type="checkbox" value="Morado"><span
+                    class="color-dot" aria-hidden="true"></span>Morado</label>
+                <label class="color-option" style="--c:#e67e22"><input type="checkbox" value="Naranja"><span
+                    class="color-dot" aria-hidden="true"></span>Naranja</label>
+                <label class="color-option" style="--c:#ffffff"><input type="checkbox" value="Blanco"><span
+                    class="color-dot" aria-hidden="true"></span>Blanco</label>
+                <label class="color-option" style="--c:#000000"><input type="checkbox" value="Negro"><span
+                    class="color-dot" aria-hidden="true"></span>Negro</label>
               </div>
             </div>
 
@@ -114,131 +129,61 @@
         </section>
       </section>
 
-      <section class="right-panel">
-        <div class="canvas-wrapper">
-          <div class="canvas-header">
-            <h2>🖌️ Tu Lienzo</h2>
-            <button id="sizeDisplay" class="size-display">Tamaño: 4px</button>
-          </div>
-          
-          <!-- Canvas Sizing Control Panel -->
-          <div id="canvas-sizing-panel" class="canvas-control-panel">
-            
-            <!-- Título -->
-            <h3 class="canvas-control-title">📐 Tamaño del Canvas</h3>
-            
-            <!-- Opciones Predefinidas -->
-            <div class="canvas-presets">
-              <button class="preset-btn" data-preset="small" title="Pequeño (400x300)" type="button">
-                <span class="preset-icon">📱</span>
-                <span>Pequeño</span>
-              </button>
-              <button class="preset-btn" data-preset="medium" title="Mediano (600x500)" type="button">
-                <span class="preset-icon">🖥️</span>
-                <span>Mediano</span>
-              </button>
-              <button class="preset-btn" data-preset="large" title="Grande (800x600)" type="button">
-                <span class="preset-icon">🖨️</span>
-                <span>Grande</span>
-              </button>
-              <button class="preset-btn" data-preset="xlarge" title="Extra Grande (1000x750)" type="button">
-                <span class="preset-icon">📺</span>
-                <span>Extra Gde</span>
-              </button>
-            </div>
-            
-            <!-- Entrada Personalizada -->
-            <div class="canvas-custom-size">
-              <label for="canvas-width-input">Ancho (px):</label>
-              <input 
-                type="number" 
-                id="canvas-width-input" 
-                class="size-input" 
-                min="200" 
-                max="1600" 
-                value="600"
-                placeholder="Ancho en píxeles"
-              >
-              
-              <label for="canvas-height-input">Alto (px):</label>
-              <input 
-                type="number" 
-                id="canvas-height-input" 
-                class="size-input" 
-                min="150" 
-                max="1200" 
-                value="500"
-                placeholder="Alto en píxeles"
-              >
-              
-              <!-- Botón para mantener proporción -->
-              <button id="lock-aspect-ratio-btn" class="lock-btn" title="Bloquear proporción" type="button">
-                🔓 Proporción libre
-              </button>
-            </div>
-            
-            <!-- Opciones de Contenido -->
-            <div class="canvas-content-options">
-              <label for="content-handling-select">¿Qué hacer con el contenido actual?</label>
-              <select id="content-handling-select" class="content-select">
-                <option value="keep">Mantener (conservar dibujo)</option>
-                <option value="scale">Escalar (ajustar dibujo al nuevo tamaño)</option>
-                <option value="clear">Limpiar (descartar dibujo actual)</option>
-              </select>
-            </div>
-            
-            <!-- Botones de Acción -->
-            <div class="canvas-action-buttons">
-              <button id="apply-canvas-size-btn" class="apply-btn primary-btn" type="button">
-                ✅ Aplicar Cambios
-              </button>
-              <button id="preview-canvas-size-btn" class="preview-btn secondary-btn" type="button">
-                👁️ Vista Previa
-              </button>
-              <button id="reset-canvas-size-btn" class="reset-btn tertiary-btn" type="button">
-                🔄 Restaurar
-              </button>
-            </div>
-            
-            <!-- Estado/Información -->
-            <div id="canvas-size-info" class="size-info">
-              <small>Tamaño actual: <strong id="current-size-display">600 × 500</strong> px</small>
-            </div>
-          </div>
-
-          <div class="canvas-tools">
-            <div class="tool-group">
-              <label for="tool" class="tool-label">Herramienta</label>
-              <select id="tool">
-                <option value="brush">🖌️ Pincel</option>
-                <option value="eraser">🗑️ Borrador</option>
-              </select>
-            </div>
-
-            <div class="tool-group">
-              <label for="size" class="tool-label">Tamaño: <span id="sizeValue">4</span>px</label>
-              <input id="size" type="range" min="1" max="50" value="4" class="size-slider">
-            </div>
-
-            <div class="tool-group">
-              <label for="picker" class="tool-label">Color</label>
-              <div class="color-picker-wrapper">
-                <input id="picker" type="color" value="#000000" class="color-picker">
-              </div>
-            </div>
-          </div>
-
-          <canvas id="canvas"></canvas>
-
-          <div class="canvas-actions">
-            <button id="clear" class="btn btn-secondary">🧹 Limpiar</button>
-            <button id="download" class="btn btn-success">⬇️ Descargar PNG</button>
-          </div>
+      <section class="right-panel" id="right-panel">
+        <div id="drawing-controls">
+          <label for="colorPicker">Color</label>
+          <input type="color" id="colorPicker" value="#222222" title="Color del Pincel">
+          <label for="brushSize">Tamaño</label>
+          <input type="range" id="brushSize" min="1" max="50" value="5" title="Tamaño del Pincel">
+          <button id="eraserBtn" title="Goma de Borrar">Goma</button>
+          <button id="undoBtn" title="Deshacer (Ctrl+Z)" disabled>↩️</button>
+          <button id="redoBtn" title="Rehacer (Ctrl+Y)" disabled>↪️</button>
+          <button id="clearBtn" title="Limpiar Lienzo">Limpiar</button>
+          <button id="saveBtn" title="Guardar en Galería"
+            style="margin-left: 10px; background-color: var(--success); color: white; border: none;">💾 Guardar</button>
         </div>
+        <canvas id="drawing-canvas"></canvas>
       </section>
     </div>
   </main>
 
+  <!-- Gallery Modal -->
+  <div id="galleryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🖼️ Mi Galería</h2>
+        <span class="close-modal">&times;</span>
+      </div>
+      <div id="galleryGrid" class="gallery-grid">
+        <!-- Drawings will be injected here -->
+      </div>
+      <div id="emptyGalleryMsg" style="text-align: center; color: #6b7280; padding: 40px; display: none;">
+        <p style="font-size: 48px; margin-bottom: 10px;">🎨</p>
+        <p>Aún no has guardado ningún dibujo.</p>
+        <p style="font-size: 0.9em;">Haz clic en "Guardar" cuando termines una obra maestra.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Modal -->
+  <div id="themeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎨 Elige tu Tema</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="resetThemesBtn" class="btn"
+            style="padding: 5px 10px; font-size: 12px; background-color: var(--danger); color: white;">🔒 Bloquear
+            Todo</button>
+          <span class="close-modal close-theme-modal">&times;</span>
+        </div>
+      </div>
+      <div id="themeGrid" class="gallery-grid">
+        <!-- Themes will be injected here -->
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
+
 </html>

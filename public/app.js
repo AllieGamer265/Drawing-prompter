@@ -2,19 +2,9 @@
 const form = document.getElementById('prefs');
 const getIdeasBtn = document.getElementById('getIdeas');
 const suggestionsDiv = document.getElementById('suggestions');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const picker = document.getElementById('picker');
-const sizeEl = document.getElementById('size');
-const sizeValue = document.getElementById('sizeValue');
-const toolEl = document.getElementById('tool');
-const clearBtn = document.getElementById('clear');
-const downloadBtn = document.getElementById('download');
-const brushSizeSlider = sizeEl;
-const colorPicker = picker;
 
 console.log('✅ App.js cargado correctamente');
-console.log('Elementos del DOM:', { form, getIdeasBtn, suggestionsDiv, canvas });
+console.log('Elementos del DOM:', { form, getIdeasBtn, suggestionsDiv });
 
 // ============== Preferences Collection ==============
 async function collectAnswers() {
@@ -34,20 +24,20 @@ async function collectAnswers() {
 // ============== API Calls ==============
 async function fetchSuggestions(answers) {
   console.log('🌐 Enviando solicitud al servidor...', answers);
-  
+
   try {
     const res = await fetch('/api/suggestions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ answers })
     });
-    
+
     console.log('📡 Respuesta del servidor:', res.status, res.statusText);
-    
+
     if (!res.ok) {
       throw new Error(`Error HTTP ${res.status}: ${res.statusText}`);
     }
-    
+
     const json = await res.json();
     console.log('✅ Datos recibidos:', json);
     return json;
@@ -61,7 +51,7 @@ async function fetchSuggestions(answers) {
 function showSuggestions(list) {
   console.log('🎨 Mostrando sugerencias:', list);
   suggestionsDiv.innerHTML = '';
-  
+
   if (!list || list.length === 0) {
     suggestionsDiv.innerHTML = '<div style="color: #6b7280; padding: 20px; text-align: center;">No se encontraron sugerencias. Intenta cambiar tus preferencias.</div>';
     return;
@@ -70,7 +60,7 @@ function showSuggestions(list) {
   list.forEach((s, i) => {
     const el = document.createElement('div');
     el.className = 'card';
-    
+
     // Convertir saltos de línea a <br>
     const description = (s.description || 'Sin descripción disponible')
       .replace(/\n/g, '<br>')
@@ -80,7 +70,7 @@ function showSuggestions(list) {
       .replace(/&lt;strong&gt;/g, '<strong>')
       .replace(/&lt;\/strong&gt;/g, '</strong>')
       .replace(/&lt;br&gt;/g, '<br>');
-    
+
     el.innerHTML = `
       <strong>💡 Idea ${i + 1}</strong>
       <div style="margin-top: 12px; line-height: 1.6;">${description}</div>
@@ -102,11 +92,11 @@ function escapeHtml(s) {
 // ============== Event Listeners ==============
 if (getIdeasBtn) {
   console.log('📍 Event listener agregado al botón');
-  
+
   getIdeasBtn.addEventListener('click', async (e) => {
     console.log('🔘 Click en botón "Obtener ideas"');
     e.preventDefault();
-    
+
     const colors = Array.from(document.querySelectorAll('#colorChoices input:checked')).length;
     const materials = Array.from(document.querySelectorAll('.materials input:checked')).length;
 
@@ -120,14 +110,14 @@ if (getIdeasBtn) {
 
     getIdeasBtn.disabled = true;
     getIdeasBtn.innerHTML = '⏳ Buscando...';
-    
+
     try {
       const answers = await collectAnswers();
       console.log('📤 Enviando al servidor:', answers);
-      
+
       const json = await fetchSuggestions(answers);
       console.log('📥 Respuesta recibida:', json);
-      
+
       if (json && json.suggestions && json.suggestions.length > 0) {
         console.log('✅ Mostrando', json.suggestions.length, 'sugerencias');
         showSuggestions(json.suggestions);
@@ -147,437 +137,11 @@ if (getIdeasBtn) {
   console.error('❌ No se encontró el botón getIdeas');
 }
 
-// ============== Canvas Setup ==============
-function resizeCanvas() {
-  const rect = canvas.getBoundingClientRect();
-  const ratio = window.devicePixelRatio || 1;
-  
-  canvas.width = Math.floor(rect.width * ratio);
-  canvas.height = Math.floor(rect.height * ratio);
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  
-  ctx.scale(ratio, ratio);
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-}
-
-// ============== Canvas Sizing Configuration ==============
-const CANVAS_PRESETS = {
-  small: { width: 400, height: 300, label: 'Pequeño' },
-  medium: { width: 600, height: 500, label: 'Mediano' },
-  large: { width: 800, height: 600, label: 'Grande' },
-  xlarge: { width: 1000, height: 750, label: 'Extra Grande' }
-};
-
-const ORIGINAL_CANVAS_SIZE = {
-  width: 600,
-  height: 500
-};
-
-let canvasAspectRatio = ORIGINAL_CANVAS_SIZE.width / ORIGINAL_CANVAS_SIZE.height;
-let isAspectRatioLocked = false;
-let isPreviewMode = false;
-let previousCanvasImageData = null;
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// ============== Drawing Logic ==============
-let drawing = false;
-let last = null;
-
-canvas.addEventListener('pointerdown', e => {
-  drawing = true;
-  last = { x: e.offsetX, y: e.offsetY };
-});
-
-canvas.addEventListener('pointerup', () => {
-  drawing = false;
-  last = null;
-});
-
-canvas.addEventListener('pointermove', e => {
-  if (!drawing) return;
-
-  const x = e.offsetX;
-  const y = e.offsetY;
-  const tool = toolEl.value;
-  const size = parseInt(sizeEl.value, 10);
-
-  if (tool === 'eraser') {
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.strokeStyle = 'rgba(0,0,0,1)';
-  } else {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = picker.value;
-  }
-
-  ctx.lineWidth = size;
-
-  if (last) {
-    ctx.beginPath();
-    ctx.moveTo(last.x, last.y);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  }
-
-  last = { x, y };
-});
-
-// ============== Tool Controls ==============
-sizeEl.addEventListener('input', e => {
-  const size = e.target.value;
-  sizeValue.textContent = size;
-});
-
-clearBtn.addEventListener('click', () => {
-  if (confirm('¿Estás seguro de que quieres limpiar el lienzo?')) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-});
-
-downloadBtn.addEventListener('click', () => {
-  const link = document.createElement('a');
-  link.download = `dibujo_${new Date().getTime()}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-});
-
-// ============== Canvas Sizing Functions ==============
-
-function initCanvasSizingElements() {
-  // Elements
-  window.canvasSizingPanel = document.getElementById('canvas-sizing-panel');
-  window.canvasWidthInput = document.getElementById('canvas-width-input');
-  window.canvasHeightInput = document.getElementById('canvas-height-input');
-  window.lockAspectRatioBtn = document.getElementById('lock-aspect-ratio-btn');
-  window.contentHandlingSelect = document.getElementById('content-handling-select');
-  window.applyCanvasSizeBtn = document.getElementById('apply-canvas-size-btn');
-  window.previewCanvasSizeBtn = document.getElementById('preview-canvas-size-btn');
-  window.resetCanvasSizeBtn = document.getElementById('reset-canvas-size-btn');
-  window.currentSizeDisplay = document.getElementById('current-size-display');
-  
-  // Preset buttons
-  window.presetButtons = document.querySelectorAll('.preset-btn');
-}
-
-function setupCanvasSizingListeners() {
-  // Preset buttons
-  window.presetButtons.forEach(btn => {
-    btn.addEventListener('click', handlePresetSelect);
-  });
-  
-  // Width input - trigger aspect ratio lock
-  window.canvasWidthInput.addEventListener('input', handleWidthChange);
-  window.canvasHeightInput.addEventListener('input', handleHeightChange);
-  
-  // Aspect ratio lock button
-  window.lockAspectRatioBtn.addEventListener('click', toggleAspectRatioLock);
-  
-  // Action buttons
-  window.applyCanvasSizeBtn.addEventListener('click', applyCanvasSize);
-  window.previewCanvasSizeBtn.addEventListener('click', toggleCanvasSizePreview);
-  window.resetCanvasSizeBtn.addEventListener('click', resetCanvasToOriginal);
-  
-  console.log('✅ Canvas sizing listeners initialized');
-}
-
-function handlePresetSelect(event) {
-  const presetName = event.currentTarget.dataset.preset;
-  const preset = CANVAS_PRESETS[presetName];
-  
-  if (!preset) return;
-  
-  // Update inputs
-  window.canvasWidthInput.value = preset.width;
-  window.canvasHeightInput.value = preset.height;
-  canvasAspectRatio = preset.width / preset.height;
-  
-  // Update active state
-  window.presetButtons.forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.currentTarget.classList.add('active');
-  
-  // Update size display
-  updateSizeDisplay(preset.width, preset.height);
-  
-  console.log(`📐 Preset selected: ${presetName} (${preset.width}x${preset.height})`);
-}
-
-function handleWidthChange(event) {
-  const newWidth = parseInt(event.target.value) || 0;
-  
-  if (isAspectRatioLocked && newWidth > 0) {
-    const newHeight = Math.round(newWidth / canvasAspectRatio);
-    window.canvasHeightInput.value = newHeight;
-    updateSizeDisplay(newWidth, newHeight);
-  } else {
-    updateSizeDisplay(newWidth, parseInt(window.canvasHeightInput.value) || 0);
-  }
-  
-  // Remove active preset since custom values were entered
-  window.presetButtons.forEach(btn => {
-    btn.classList.remove('active');
-  });
-}
-
-function handleHeightChange(event) {
-  const newHeight = parseInt(event.target.value) || 0;
-  
-  if (isAspectRatioLocked && newHeight > 0) {
-    const newWidth = Math.round(newHeight * canvasAspectRatio);
-    window.canvasWidthInput.value = newWidth;
-    updateSizeDisplay(newWidth, newHeight);
-  } else {
-    updateSizeDisplay(parseInt(window.canvasWidthInput.value) || 0, newHeight);
-  }
-  
-  // Remove active preset
-  window.presetButtons.forEach(btn => {
-    btn.classList.remove('active');
-  });
-}
-
-function toggleAspectRatioLock() {
-  isAspectRatioLocked = !isAspectRatioLocked;
-  
-  // Update button appearance
-  window.lockAspectRatioBtn.classList.toggle('locked', isAspectRatioLocked);
-  window.lockAspectRatioBtn.textContent = isAspectRatioLocked 
-    ? '🔒 Proporción bloqueada' 
-    : '🔓 Proporción libre';
-  
-  // Store current aspect ratio when locking
-  if (isAspectRatioLocked) {
-    const width = parseInt(window.canvasWidthInput.value);
-    const height = parseInt(window.canvasHeightInput.value);
-    canvasAspectRatio = width / height;
-  }
-  
-  console.log(`🔒 Aspect ratio lock: ${isAspectRatioLocked ? 'ON' : 'OFF'}`);
-}
-
-function updateSizeDisplay(width, height) {
-  window.currentSizeDisplay.textContent = `${width} × ${height}`;
-}
-
-function saveCanvasContent() {
-  try {
-    previousCanvasImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    console.log('✅ Canvas content saved for resize operation');
-  } catch (error) {
-    console.error('❌ Error saving canvas content:', error);
-    previousCanvasImageData = null;
-  }
-}
-
-function restoreCanvasContent(method = 'keep') {
-  if (!previousCanvasImageData) {
-    console.warn('⚠️ No saved canvas content to restore');
-    return;
-  }
-  
-  switch (method) {
-    case 'keep':
-      // Copy the old image data to the new canvas at the top-left corner
-      ctx.putImageData(previousCanvasImageData, 0, 0);
-      console.log('✅ Canvas content kept (placed at top-left)');
-      break;
-      
-    case 'scale':
-      // Scale the old image to fit the new canvas size
-      const scaledImage = new OffscreenCanvas(
-        previousCanvasImageData.width,
-        previousCanvasImageData.height
-      );
-      const scaledCtx = scaledImage.getContext('2d');
-      scaledCtx.putImageData(previousCanvasImageData, 0, 0);
-      
-      ctx.drawImage(
-        scaledImage,
-        0,
-        0,
-        previousCanvasImageData.width,
-        previousCanvasImageData.height,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-      console.log('✅ Canvas content scaled to new size');
-      break;
-      
-    case 'clear':
-      // Clear the canvas (do nothing, it's already cleared)
-      console.log('✅ Canvas cleared');
-      break;
-  }
-}
-
-function applyCanvasSize() {
-  const newWidth = parseInt(window.canvasWidthInput.value);
-  const newHeight = parseInt(window.canvasHeightInput.value);
-  
-  // Validations
-  if (!newWidth || !newHeight) {
-    alert('⚠️ Por favor ingresa valores válidos de ancho y alto');
-    return;
-  }
-  
-  if (newWidth < 200 || newWidth > 1600) {
-    alert('⚠️ El ancho debe estar entre 200 y 1600 píxeles');
-    return;
-  }
-  
-  if (newHeight < 150 || newHeight > 1200) {
-    alert('⚠️ El alto debe estar entre 150 y 1200 píxeles');
-    return;
-  }
-  
-  // Save current content
-  saveCanvasContent();
-  
-  // Get content handling method
-  const method = window.contentHandlingSelect.value;
-  
-  // Change canvas size
-  canvas.width = newWidth;
-  canvas.height = newHeight;
-  
-  // Reset canvas context properties (they're lost when resizing)
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = colorPicker.value;
-  ctx.lineWidth = brushSizeSlider.value;
-  
-  // Restore content based on selected method
-  restoreCanvasContent(method);
-  
-  // Update preview mode if active
-  if (isPreviewMode) {
-    isPreviewMode = false;
-    window.previewCanvasSizeBtn.classList.remove('active');
-  }
-  
-  // Clear saved data
-  previousCanvasImageData = null;
-  
-  console.log(
-    `✅ Canvas resized to ${newWidth}x${newHeight}px (method: ${method})`
-  );
-}
-
-function toggleCanvasSizePreview() {
-  const newWidth = parseInt(window.canvasWidthInput.value);
-  const newHeight = parseInt(window.canvasHeightInput.value);
-  
-  if (!newWidth || !newHeight) {
-    alert('⚠️ Por favor ingresa valores válidos');
-    return;
-  }
-  
-  if (!isPreviewMode) {
-    // Enter preview mode
-    isPreviewMode = true;
-    saveCanvasContent();
-    
-    // Temporarily resize canvas
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    
-    // Reset context
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = colorPicker.value;
-    ctx.lineWidth = brushSizeSlider.value;
-    
-    // Restore content
-    restoreCanvasContent('keep');
-    
-    window.previewCanvasSizeBtn.classList.add('active');
-    window.previewCanvasSizeBtn.textContent = '✓ Presualizando';
-    
-    console.log('👁️ Canvas preview mode ON');
-  } else {
-    // Exit preview mode - restore original canvas
-    isPreviewMode = false;
-    canvas.width = ORIGINAL_CANVAS_SIZE.width;
-    canvas.height = ORIGINAL_CANVAS_SIZE.height;
-    
-    // Reset context
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = colorPicker.value;
-    ctx.lineWidth = brushSizeSlider.value;
-    
-    // Restore previous content
-    restoreCanvasContent('keep');
-    
-    previousCanvasImageData = null;
-    
-    window.previewCanvasSizeBtn.classList.remove('active');
-    window.previewCanvasSizeBtn.textContent = '👁️ Vista Previa';
-    
-    console.log('👁️ Canvas preview mode OFF');
-  }
-}
-
-function resetCanvasToOriginal() {
-  const confirmed = confirm(
-    '¿Estás seguro de que deseas restaurar el tamaño original del canvas? ' +
-    'El contenido actual se perderá.'
-  );
-  
-  if (!confirmed) return;
-  
-  // Reset to original size
-  canvas.width = ORIGINAL_CANVAS_SIZE.width;
-  canvas.height = ORIGINAL_CANVAS_SIZE.height;
-  
-  // Reset inputs
-  window.canvasWidthInput.value = ORIGINAL_CANVAS_SIZE.width;
-  window.canvasHeightInput.value = ORIGINAL_CANVAS_SIZE.height;
-  
-  // Reset buttons
-  window.presetButtons.forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Reset aspect ratio
-  canvasAspectRatio = ORIGINAL_CANVAS_SIZE.width / ORIGINAL_CANVAS_SIZE.height;
-  isAspectRatioLocked = false;
-  window.lockAspectRatioBtn.classList.remove('locked');
-  window.lockAspectRatioBtn.textContent = '🔓 Proporción libre';
-  
-  // Reset context
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = colorPicker.value;
-  ctx.lineWidth = brushSizeSlider.value;
-  
-  // Clear saved content
-  previousCanvasImageData = null;
-  
-  // Update display
-  updateSizeDisplay(ORIGINAL_CANVAS_SIZE.width, ORIGINAL_CANVAS_SIZE.height);
-  
-  // Close preview if active
-  if (isPreviewMode) {
-    isPreviewMode = false;
-    window.previewCanvasSizeBtn.classList.remove('active');
-    window.previewCanvasSizeBtn.textContent = '👁️ Vista Previa';
-  }
-  
-  console.log('🔄 Canvas reset to original size');
-}
-
 // ============== Color Preferences ==============
 document.querySelectorAll('#colorChoices input').forEach(inp => {
   inp.addEventListener('change', () => {
     const checked = Array.from(document.querySelectorAll('#colorChoices input:checked')).map(i => i.value.toLowerCase());
-    
+
     if (checked.length === 1) {
       const colorMap = {
         'rojo': '#d9534f',
@@ -590,7 +154,7 @@ document.querySelectorAll('#colorChoices input').forEach(inp => {
         'negro': '#000000'
       };
       const hex = colorMap[checked[0]] || '#000000';
-      picker.value = hex;
+      // picker.value = hex; // picker no longer exists
     }
   });
 });
@@ -611,12 +175,454 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ============== Initialize Canvas Sizing on Load ==============
-window.addEventListener('load', function() {
-  // Canvas Sizing Feature
-  initCanvasSizingElements();
-  setupCanvasSizingListeners();
-  updateSizeDisplay(canvas.width, canvas.height);
-  
-  console.log('✅ All features initialized successfully');
+
+// ============== Drawing Canvas Logic ==============
+document.addEventListener('DOMContentLoaded', () => {
+  const drawingModeBtn = document.getElementById('drawingModeBtn');
+  const drawingControls = document.getElementById('drawing-controls');
+  const canvas = document.getElementById('drawing-canvas');
+  const rightPanel = document.getElementById('right-panel');
+
+  if (!canvas || !drawingModeBtn || !drawingControls || !rightPanel) {
+    console.error('Drawing elements not found');
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  const colorPicker = document.getElementById('colorPicker');
+  const brushSize = document.getElementById('brushSize');
+  const eraserBtn = document.getElementById('eraserBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  const saveBtn = document.getElementById('saveBtn');
+
+  // Gallery Elements
+  const galleryBtn = document.getElementById('galleryBtn');
+  const galleryModal = document.getElementById('galleryModal');
+  const closeModal = document.querySelector('.close-modal');
+  const galleryGrid = document.getElementById('galleryGrid');
+  const emptyGalleryMsg = document.getElementById('emptyGalleryMsg');
+
+  // Theme Elements
+  const themeBtn = document.getElementById('themeBtn');
+  const themeModal = document.getElementById('themeModal');
+  const closeThemeModal = document.querySelector('.close-theme-modal');
+  const themeGrid = document.getElementById('themeGrid');
+  const resetThemesBtn = document.getElementById('resetThemesBtn');
+
+  // Themes Configuration
+  const THEMES = [
+    { id: 'original', name: 'Original', color: '#6366f1', free: true },
+    { id: 'theme-dark', name: 'Modo Noche', color: '#1f2937', free: true },
+    { id: 'theme-ocean', name: 'Ocean', color: '#0ea5e9', free: false, password: 'agua' },
+    { id: 'theme-retro', name: 'Retro 80s', color: '#f472b6', free: false, password: '1980' },
+    { id: 'theme-forest', name: 'Bosque', color: '#22c55e', free: false, password: 'arbol' },
+    { id: 'theme-royal', name: 'Royal', color: '#9333ea', free: false, password: 'reina' },
+    { id: 'theme-matrix', name: 'Matrix', color: '#00ff00', free: false, password: '2.0' },
+    { id: 'theme-hacker', name: 'Hacker', color: '#00cc00', free: false, password: 'root' },
+    { id: 'theme-candy', name: 'Candy', color: '#ec4899', free: false, password: 'dulce' }
+  ];
+
+  // Undo/Redo State
+  let historyStack = [];
+  let currentStep = -1;
+  const MAX_HISTORY = 20;
+
+  let isDrawing = false;
+  let lastX = 0;
+  let lastY = 0;
+
+  function updateButtons() {
+    if (!undoBtn || !redoBtn) return;
+    undoBtn.disabled = currentStep <= 0;
+    redoBtn.disabled = currentStep >= historyStack.length - 1;
+  }
+
+  function saveState() {
+    if (currentStep < historyStack.length - 1) {
+      // Truncate history if we draw after undoing
+      historyStack = historyStack.slice(0, currentStep + 1);
+    }
+
+    const state = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    historyStack.push(state);
+
+    if (historyStack.length > MAX_HISTORY) {
+      historyStack.shift();
+    } else {
+      currentStep++;
+    }
+
+    updateButtons();
+    console.log(`💾 Estado guardado. Paso: ${currentStep}, Historial: ${historyStack.length}`);
+  }
+
+  function undo() {
+    if (currentStep > 0) {
+      currentStep--;
+      const state = historyStack[currentStep];
+      ctx.putImageData(state, 0, 0);
+      updateButtons();
+      console.log(`↩️ Deshacer. Paso: ${currentStep}`);
+    }
+  }
+
+  function redo() {
+    if (currentStep < historyStack.length - 1) {
+      currentStep++;
+      const state = historyStack[currentStep];
+      ctx.putImageData(state, 0, 0);
+      updateButtons();
+      console.log(`↪️ Rehacer. Paso: ${currentStep}`);
+    }
+  }
+
+  // ============== Gallery Functions ==============
+  function loadGallery() {
+    const drawings = JSON.parse(localStorage.getItem('myDrawings') || '[]');
+    galleryGrid.innerHTML = '';
+
+    if (drawings.length === 0) {
+      emptyGalleryMsg.style.display = 'block';
+      return;
+    }
+
+    emptyGalleryMsg.style.display = 'none';
+
+    drawings.forEach((d, index) => {
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+
+      const date = new Date(d.date).toLocaleDateString();
+
+      item.innerHTML = `
+        <div class="load-overlay">
+          <span class="load-text">Cargar en Lienzo</span>
+        </div>
+        <img src="${d.image}" alt="Dibujo del ${date}">
+        <div class="gallery-item-footer">
+          <span>📅 ${date}</span>
+          <button class="delete-btn" title="Eliminar" data-index="${index}">🗑️</button>
+        </div>
+      `;
+
+      item.querySelector('.load-overlay').addEventListener('click', (e) => {
+        e.stopPropagation();
+        loadImageToCanvas(d.image);
+        galleryModal.style.display = 'none';
+      });
+
+      item.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('¿Estás seguro de que quieres eliminar este dibujo?')) {
+          deleteDrawing(index);
+        }
+      });
+
+      galleryGrid.appendChild(item);
+    });
+  }
+
+  function saveDrawing() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tCtx = tempCanvas.getContext('2d');
+
+    tCtx.fillStyle = '#FFFFFF';
+    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tCtx.drawImage(canvas, 0, 0);
+
+    const image = tempCanvas.toDataURL('image/png');
+    const drawings = JSON.parse(localStorage.getItem('myDrawings') || '[]');
+
+    drawings.unshift({
+      date: new Date().toISOString(),
+      image: image
+    });
+
+    localStorage.setItem('myDrawings', JSON.stringify(drawings));
+    alert('¡Dibujo guardado en tu galería personal! 💾');
+  }
+
+  function deleteDrawing(index) {
+    const drawings = JSON.parse(localStorage.getItem('myDrawings') || '[]');
+    drawings.splice(index, 1);
+    localStorage.setItem('myDrawings', JSON.stringify(drawings));
+    loadGallery();
+  }
+
+  function loadImageToCanvas(dataUrl) {
+    const img = new Image();
+    img.onload = () => {
+      // Determine clear color based on theme
+      let bgColor = '#FFFFFF';
+      if (document.body.classList.contains('theme-dark')) bgColor = '#1f2937';
+      else if (document.body.classList.contains('theme-ocean')) bgColor = '#082f49';
+      else if (document.body.classList.contains('theme-retro')) bgColor = '#1e1b4b';
+      else if (document.body.classList.contains('theme-forest')) bgColor = '#064e3b';
+      else if (document.body.classList.contains('theme-royal')) bgColor = '#2e1065';
+      else if (document.body.classList.contains('theme-matrix')) bgColor = '#000000';
+      else if (document.body.classList.contains('theme-hacker')) bgColor = '#000000';
+      else if (document.body.classList.contains('theme-candy')) bgColor = '#fff1f2';
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Ideally we would fill with bg color first, but images are saved with white bg currently
+      // so drawing them over transparent is fine.
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      saveState();
+
+      if (!document.body.classList.contains('drawing-mode-active')) {
+        document.body.classList.add('drawing-mode-active');
+        setTimeout(resizeCanvas, 50);
+      }
+    };
+    img.src = dataUrl;
+  }
+
+  // ============== Theme Functions ==============
+  function initThemes() {
+    const savedTheme = localStorage.getItem('currentTheme');
+    if (savedTheme) {
+      applyTheme(savedTheme, false);
+    }
+  }
+
+  function applyTheme(themeId, save = true) {
+    // Remove all theme classes
+    THEMES.forEach(t => {
+      if (t.id !== 'original') document.body.classList.remove(t.id);
+    });
+
+    // Add new theme class
+    if (themeId !== 'original') {
+      document.body.classList.add(themeId);
+    }
+
+    if (save) {
+      localStorage.setItem('currentTheme', themeId);
+      resizeCanvas(); // Resize to update background color
+    }
+  }
+
+  function renderThemes() {
+    themeGrid.innerHTML = '';
+    const unlocked = JSON.parse(localStorage.getItem('unlockedThemes') || '[]');
+    const current = localStorage.getItem('currentTheme') || 'original';
+
+    THEMES.forEach(theme => {
+      const isLocked = !theme.free && !unlocked.includes(theme.id);
+      const isActive = current === theme.id;
+
+      const el = document.createElement('div');
+      el.className = 'gallery-item';
+      if (isActive) el.style.border = '2px solid var(--primary)';
+
+      el.innerHTML = `
+        <div class="theme-preview" style="background-color: ${theme.color}"></div>
+        <div class="gallery-item-footer" style="justify-content: center;">
+            <strong>${theme.name}</strong>
+        </div>
+        ${isLocked ? '<div class="locked-overlay">🔒</div>' : ''}
+      `;
+
+      el.addEventListener('click', () => {
+        if (isLocked) {
+          const pass = prompt(`🔒 El tema "${theme.name}" está bloqueado.\nIntroduce la contraseña secreta:`);
+          if (pass === theme.password) {
+            alert('🔓 ¡Contraseña correcta! Tema desbloqueado.');
+            unlocked.push(theme.id);
+            localStorage.setItem('unlockedThemes', JSON.stringify(unlocked));
+            renderThemes(); // Re-render to remove lock
+            applyTheme(theme.id);
+          } else if (pass !== null) {
+            alert('❌ Contraseña incorrecta.');
+          }
+        } else {
+          applyTheme(theme.id);
+          themeModal.style.display = 'none';
+        }
+      });
+
+      themeGrid.appendChild(el);
+    });
+  }
+
+  // Initialize themes on load
+  initThemes();
+
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = rightPanel.getBoundingClientRect();
+
+    // Determine background color based on theme
+    let bgColor = '#FFFFFF';
+    if (document.body.classList.contains('theme-dark')) bgColor = '#1f2937';
+    else if (document.body.classList.contains('theme-ocean')) bgColor = '#082f49';
+    else if (document.body.classList.contains('theme-retro')) bgColor = '#1e1b4b';
+    else if (document.body.classList.contains('theme-forest')) bgColor = '#064e3b';
+    else if (document.body.classList.contains('theme-royal')) bgColor = '#2e1065';
+    else if (document.body.classList.contains('theme-matrix')) bgColor = '#000000';
+    else if (document.body.classList.contains('theme-hacker')) bgColor = '#000000';
+    else if (document.body.classList.contains('theme-candy')) bgColor = '#fff1f2';
+
+    // Set a background for the canvas
+    canvas.style.backgroundColor = bgColor;
+
+    canvas.width = rect.width * dpr;
+    canvas.height = (window.innerHeight - drawingControls.offsetHeight - 80) * dpr;
+
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${window.innerHeight - drawingControls.offsetHeight - 80}px`;
+
+    ctx.scale(dpr, dpr);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = colorPicker.value;
+    ctx.lineWidth = brushSize.value;
+
+    // Reset history on resize/init (since canvas forces clear)
+    historyStack = [];
+    currentStep = -1;
+    saveState(); // Save the initial blank state
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+  });
+
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', () => {
+    if (isDrawing) {
+      isDrawing = false;
+      saveState(); // Save state after stroke
+    }
+  });
+  canvas.addEventListener('mouseout', () => {
+    if (isDrawing) {
+      isDrawing = false;
+      saveState(); // Save state after stroke
+    }
+  });
+
+  colorPicker.addEventListener('change', (e) => {
+    ctx.strokeStyle = e.target.value;
+  });
+
+  brushSize.addEventListener('input', (e) => {
+    ctx.lineWidth = e.target.value;
+  });
+
+  eraserBtn.addEventListener('click', () => {
+    ctx.strokeStyle = '#FFFFFF'; // Set brush to white to act as an eraser
+  });
+
+  clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveState(); // Save blank state after clearing
+  });
+
+  if (undoBtn) undoBtn.addEventListener('click', undo);
+  if (redoBtn) redoBtn.addEventListener('click', redo);
+
+  if (saveBtn) saveBtn.addEventListener('click', saveDrawing);
+
+  // Theme Listeners
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      renderThemes();
+      themeModal.style.display = 'block';
+    });
+  }
+
+  if (closeThemeModal) {
+    closeThemeModal.addEventListener('click', () => {
+      themeModal.style.display = 'none';
+    });
+  }
+
+  if (resetThemesBtn) {
+    resetThemesBtn.addEventListener('click', () => {
+      if (confirm('¿Quieres bloquear todos los temas de nuevo? Tendrás que poner las contraseñas otra vez.')) {
+        localStorage.removeItem('unlockedThemes');
+        // If current theme is not free, revert to original
+        const currentThemeId = localStorage.getItem('currentTheme');
+        const currentThemeConfig = THEMES.find(t => t.id === currentThemeId);
+
+        if (currentThemeConfig && !currentThemeConfig.free) {
+          applyTheme('original');
+        }
+
+        renderThemes();
+        alert('🔒 ¡Todos los temas bloqueados!');
+      }
+    });
+  }
+
+  // Close modals on outside click
+  window.addEventListener('click', (e) => {
+    if (e.target === galleryModal) {
+      galleryModal.style.display = 'none';
+    }
+    if (e.target === themeModal) {
+      themeModal.style.display = 'none';
+    }
+  });
+
+  if (galleryBtn) {
+    galleryBtn.addEventListener('click', () => {
+      loadGallery();
+      galleryModal.style.display = 'block';
+    });
+  }
+
+  if (closeModal) {
+    closeModal.addEventListener('click', () => {
+      galleryModal.style.display = 'none';
+    });
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (document.body.classList.contains('drawing-mode-active')) {
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      } else if (e.ctrlKey && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    }
+  });
+
+  drawingModeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('drawing-mode-active');
+    // After the class is toggled, the browser needs a moment to reflow,
+    // then we can resize the canvas.
+    setTimeout(resizeCanvas, 50);
+  });
+
+  window.addEventListener('resize', () => {
+    if (document.body.classList.contains('drawing-mode-active')) {
+      resizeCanvas();
+    }
+  });
+
+  // Initial setup for drawing mode, but hidden
+  if (document.body.classList.contains('drawing-mode-active')) {
+    resizeCanvas();
+  }
 });
